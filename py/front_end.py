@@ -131,6 +131,7 @@ class GUI:
         """ Visualize the graph
         """
         clear_output(wait=True)
+        plt.clf()
         self.reload_nodes()
         nx.draw(self.graph, with_labels=True)
         plt.show()
