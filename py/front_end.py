@@ -36,17 +36,45 @@ class GUI:
             'Arial', 14)).grid(column=0, row=3, pady=10)
 
         self.root_node = ''
+
+        nodes = self.dbhandler.database['nodes']
+        
+        self.dropdown_options1 = tk.StringVar(self.root)
+        self.dropdown_options1.set("parent") # default value
+        self.dropdown_options2 = tk.StringVar(self.root)
+        self.dropdown_options2.set("child") # default value
+
+        self.dropdown_options3 = tk.StringVar(self.root)
+        self.dropdown_options3.set("parent") # default value
+        self.dropdown_options4 = tk.StringVar(self.root)
+        self.dropdown_options4.set("child") # default value
+
+        if len(nodes) < 1:
+            self.drowdown1 = tk.OptionMenu(self.root, self.dropdown_options1 , value = '')
+            self.drowdown2 = tk.OptionMenu(self.root, self.dropdown_options2, value = '')
+            self.drowdown3 = tk.OptionMenu(self.root, self.dropdown_options3 , value = '')
+            self.drowdown4 = tk.OptionMenu(self.root, self.dropdown_options2, value = '')
+        else:
+            self.drowdown1 = tk.OptionMenu(self.root, self.dropdown_options1, *nodes)
+            self.drowdown2 = tk.OptionMenu(self.root, self.dropdown_options2, *nodes)
+            self.drowdown3 = tk.OptionMenu(self.root, self.dropdown_options3, *nodes)
+            self.drowdown4 = tk.OptionMenu(self.root, self.dropdown_options4, *nodes)
+   
+        self.drowdown1.config(width=8, height=1)
+        self.drowdown2.config(width=8, height=1)
+        self.drowdown1.grid(column=1, row=1, padx = 32, pady=10)
+        self.drowdown2.grid(column=2, row=1, pady=10)
+
+        self.drowdown3.config(width=8, height=1)
+        self.drowdown4.config(width=8, height=1)
+        self.drowdown3.grid(column=1, row=3, padx = 32, pady=10)
+        self.drowdown4.grid(column=2, row=3, pady=10)
+
         self.add_node_box = tk.Text(self.root, height=1, width=30)
         self.add_node_box.grid(column=1, row=0, pady=10, columnspan=2)
 
-        self.add_edge_box = tk.Text(self.root, height=1, width=30)
-        self.add_edge_box.grid(column=1, row=1, pady=10, columnspan=2)
-
         self.delete_node_box = tk.Text(self.root, height=1, width=30)
         self.delete_node_box.grid(column=1, row=2, pady=10, columnspan=2)
-
-        self.delete_edge_box = tk.Text(self.root, height=1, width=30)
-        self.delete_edge_box.grid(column=1, row=3, pady=10, columnspan=2)
 
         self.button = tk.Button(self.root, text="Add Node", font=(
             'Arial', 14), height=1, width=14, command=self.add_node)
@@ -64,50 +92,82 @@ class GUI:
             'Arial', 14), height=1, width=14, command=self.delete_edge)
         self.button.grid(column=3, row=3, pady=10)
 
-        self.button = tk.Button(self.root, text="Visualize Graph", font=(
-            'Arial', 14), height=1, width=14, command=self.visualize)
-        self.button.grid(column=2, row=4, pady=10)
+        self.visualize()
 
+    def update_option_menu(self):
+
+        menu1 = self.drowdown1["menu"]
+        menu1.delete(0, "end")
+        menu2 = self.drowdown2["menu"]
+        menu2.delete(0, "end")
+        menu3 = self.drowdown3["menu"]
+        menu3.delete(0, "end")
+        menu4 = self.drowdown4["menu"]
+        menu4.delete(0, "end")
+
+        for string in self.dbhandler.database['nodes']:
+            menu1.add_command(label=string, 
+                             command=lambda value=string: self.dropdown_options1.set(value))
+            menu2.add_command(label=string, 
+                             command=lambda value=string: self.dropdown_options2.set(value))
+            menu3.add_command(label=string, 
+                             command=lambda value=string: self.dropdown_options3.set(value))
+            menu4.add_command(label=string, 
+                             command=lambda value=string: self.dropdown_options4.set(value))
+        
+            
+            
+            
     def add_node(self):
         """ adding a node in the database if it doesnt exist
         """
         if len(self.add_node_box.get("1.0", "end-1c")) == 0:
             print("Textbox empty")
+            return
         else:
             self.dbhandler.add_node(self.add_node_box.get("1.0", "end-1c"))
+        
+        self.update_option_menu()
+        self.visualize()
 
     def add_edge(self):
         """ adding a edge in the database if it doesnt exist
         """
-        if len(self.add_edge_box.get("1.0", "end-1c")) == 0:
-            print("Textbox empty")
-        elif ',' not in self.add_edge_box.get("1.0", "end-1c"):
-            print(
-                "there is only 1 node, please seperate nodes by putting a comma(,) in between")
+        if self.dropdown_options1.get() == 'parent' or self.dropdown_options2.get() == 'child':
+            print ("node not found in database")
+            return
         else:
-            nodes = self.add_edge_box.get("1.0", "end-1c")
+            nodes = self.dropdown_options1.get()
+            nodes = nodes + ',' + self.dropdown_options2.get()
             self.dbhandler.add_edge(nodes)
+        self.visualize()
 
     def delete_node(self):
         """ deleting a node in the database if it exists
         """
         if len(self.delete_node_box.get("1.0", "end-1c")) == 0:
             print("Textbox empty")
+            return
         else:
             self.dbhandler.delete_node(
                 self.delete_node_box.get("1.0", "end-1c"))
+        self.update_option_menu()
+        self.visualize()
 
     def delete_edge(self):
         """ deleting a edge in the database if it exists
         """
-        if len(self.delete_edge_box.get("1.0", "end-1c")) == 0:
-            print("Textbox empty")
-        elif ',' not in self.delete_edge_box.get("1.0", "end-1c"):
-            print(
-                "there is only 1 node, please seperate nodes by putting a comma(,) in between")
+        if self.dropdown_options3.get() not in self.dbhandler.database['nodes'] or self.dropdown_options4.get() not in self.dbhandler.database['nodes']:
+            print ("node not found in database")
+            return
         else:
-            nodes = self.delete_edge_box.get("1.0", "end-1c")
-            self.dbhandler.delete_edge(nodes)
+            nodes = self.dropdown_options3.get()
+            nodes = nodes + ',' + self.dropdown_options4.get()
+            edge_deleted = self.dbhandler.delete_edge(nodes)
+            if not edge_deleted:
+                return
+
+        self.visualize()
 
     def reload_nodes(self):
         """ reload all the nodes from dbhandler

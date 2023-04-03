@@ -86,7 +86,9 @@ class GraphDB:
             self.database['edges'].remove(nodes)
         else:
             print("Edge not found in the database")
+            return False
         self.save_data()
+        return True
 
     def save_data(self):
         """Saving database in database.json file
